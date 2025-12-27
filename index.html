@@ -14,7 +14,7 @@
         [x-cloak] { display: none !important; }
         @media print { .no-print { display: none !important; } }
         body { font-family: 'Cairo', sans-serif; background-color: #fdfaf6; transition: all 0.3s ease; color: black; }
-        .logo-img { width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid; }
+        .logo-img { width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid; cursor: pointer; }
         .instruction-box { background-color: #fff5f5; border: 2px solid #feb2b2; border-radius: 1rem; padding: 1.5rem; margin-bottom: 1.5rem; }
         select option { color: black !important; background: white !important; font-weight: bold; }
         .loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
@@ -22,30 +22,31 @@
 </head>
 <body x-data="mounirApp()" x-init="init()">
 
-    <!-- شاشة التحميل (معدلة لتختفي تلقائياً) -->
     <div x-show="loading" class="loading-overlay">
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-black mb-4"></div>
-        <p class="font-bold text-black" x-text="settings.lang === 'ar' ? 'جاري فتح التطبيق...' : 'Ouverture...'"></p>
+        <p class="font-bold text-black" x-text="settings.lang === 'ar' ? 'جاري التحميل...' : 'Chargement...'"></p>
     </div>
 
-    <!-- Header -->
+    <!-- Header (تم إخفاء زر لوحة التحكم من هنا) -->
     <header :style="{ backgroundColor: settings.primaryColor }" class="text-white p-5 shadow-2xl flex justify-between items-center no-print sticky top-0 z-50 border-b-2" :style="{ borderBottomColor: settings.accentColor }">
         <div class="flex items-center gap-3">
-            <template x-if="settings.logo"><img :src="settings.logo" :style="{ borderColor: settings.accentColor }" class="logo-img shadow-lg"></template>
-            <template x-if="!settings.logo">
-                <div :style="{ backgroundColor: settings.accentColor }" class="p-2 rounded-full font-bold text-black shadow-lg w-12 h-12 flex items-center justify-center text-xl">
-                    <span x-text="settings.appTitle ? settings.appTitle.charAt(0) : 'M'">M</span>
-                </div>
-            </template>
+            <!-- الشعار هو زر الدخول السري للمسؤول -->
+            <div @click="loginAdmin()" title="Admin Login">
+                <template x-if="settings.logo"><img :src="settings.logo" :style="{ borderColor: settings.accentColor }" class="logo-img shadow-lg"></template>
+                <template x-if="!settings.logo">
+                    <div :style="{ backgroundColor: settings.accentColor }" class="p-2 rounded-full font-bold text-black shadow-lg w-12 h-12 flex items-center justify-center text-xl cursor-pointer">
+                        <span x-text="settings.appTitle ? settings.appTitle.charAt(0) : 'M'">M</span>
+                    </div>
+                </template>
+            </div>
             <h1 :style="{ color: settings.accentColor }" class="text-xl font-bold tracking-widest uppercase italic" x-text="settings.appTitle || 'MOUNIR MODE'"></h1>
         </div>
-        <nav class="flex gap-4">
+        <nav>
             <button @click="view = 'customer'" class="hover:opacity-80 transition font-bold text-sm" x-text="t('newOrder')"></button>
-            <button @click="loginAdmin()" class="bg-white text-black px-4 py-1 rounded-full font-bold text-xs hover:opacity-90 transition shadow" x-text="t('adminPanel')"></button>
         </nav>
     </header>
 
-    <main class="container mx-auto mt-6 p-4 max-w-5xl">
+    <main class="container mx-auto mt-6 p-4 max-w-5xl font-bold">
 
         <!-- واجهة الزبون -->
         <template x-if="view === 'customer'">
@@ -54,11 +55,11 @@
                     <h2 class="text-white text-xl font-black italic uppercase tracking-widest" x-text="settings.heroText"></h2>
                 </div>
 
-                <div class="p-8 space-y-8 text-black font-bold">
+                <div class="p-8 space-y-8 text-black">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-2">
                             <label class="font-bold flex items-center gap-2" x-text="t('customerType')"></label>
-                            <select x-model="order.customerType" class="w-full border-2 p-3 rounded-xl outline-none bg-white font-bold text-black shadow-sm">
+                            <select x-model="order.customerType" class="w-full border-2 p-3 rounded-xl outline-none bg-white text-black">
                                 <option value="" x-text="t('select')"></option>
                                 <option :value="t('woman')" x-text="t('woman')"></option>
                                 <option :value="t('man')" x-text="t('man')"></option>
@@ -68,7 +69,7 @@
                         </div>
                         <div class="space-y-2">
                             <label class="font-bold flex items-center gap-2" x-text="t('selectGarment')"></label>
-                            <select x-model="order.garmentType" @change="updateFields()" class="w-full border-2 p-3 rounded-xl outline-none font-bold text-blue-900 bg-white shadow-sm">
+                            <select x-model="order.garmentType" @change="updateFields()" class="w-full border-2 p-3 rounded-xl outline-none font-bold text-blue-900 bg-white">
                                 <option value="" x-text="t('select')"></option>
                                 <template x-for="type in Object.keys(garmentFields)" :key="type">
                                     <option :value="type" x-text="type"></option>
@@ -77,12 +78,12 @@
                         </div>
                     </div>
 
-                    <!-- ألبوم الصور -->
+                    <!-- ألبوم الموديلات (صور) -->
                     <div class="space-y-4" x-show="models.length > 0">
-                        <label :style="{ borderRightColor: settings.accentColor, borderLeftColor: settings.accentColor }" class="font-bold text-lg border-x-4 px-3 italic" x-text="t('selectModel')"></label>
+                        <label :style="{ borderRightColor: settings.accentColor, borderLeftColor: settings.accentColor }" class="font-bold text-lg border-x-4 px-3 italic text-black" x-text="t('selectModel')"></label>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <template x-for="m in models" :key="m.id">
-                                <div @click="order.model = m.name; order.price = m.price" 
+                                <div @click="order.model = m.name; order.price = m.price; order.modelImg = m.img" 
                                      :class="order.model === m.name ? 'ring-4 shadow-2xl scale-105' : 'border-2'"
                                      :style="{ ringColor: settings.accentColor, borderColor: order.model === m.name ? settings.accentColor : '#f3f4f6' }"
                                      class="cursor-pointer relative rounded-xl overflow-hidden bg-gray-50 transition transform shadow-sm">
@@ -96,13 +97,13 @@
                         </div>
                     </div>
 
-                    <!-- الأقمشة -->
+                    <!-- اختيار القماش -->
                     <div class="space-y-4" x-show="fabrics.length > 0">
-                        <label :style="{ borderRightColor: settings.accentColor, borderLeftColor: settings.accentColor }" class="font-bold text-lg border-x-4 px-3 italic" x-text="t('selectFabric')"></label>
+                        <label :style="{ borderRightColor: settings.accentColor, borderLeftColor: settings.accentColor }" class="font-bold text-lg border-x-4 px-3 italic text-black" x-text="t('selectFabric')"></label>
                         <div class="flex gap-4 overflow-x-auto pb-4">
                             <template x-for="f in fabrics" :key="f.id">
                                 <div @click="order.fabric = f.name" 
-                                     :style="order.fabric === f.name ? { backgroundColor: settings.accentColor, borderColor: settings.accentColor, color: '#000' } : { backgroundColor: '#fff', borderColor: '#e5e7eb' }"
+                                     :style="order.fabric === f.name ? { backgroundColor: settings.accentColor, borderColor: settings.accentColor, color: '#000' } : { backgroundColor: '#fff', borderColor: '#e5e7eb', color: '#000' }"
                                      class="cursor-pointer border-2 px-6 py-3 rounded-full whitespace-nowrap transition font-bold shadow-sm" x-text="f.name">
                                 </div>
                             </template>
@@ -112,12 +113,12 @@
                     <!-- القياسات -->
                     <template x-if="order.garmentType">
                         <div :style="{ borderColor: settings.accentColor + '44' }" class="bg-gray-50 p-6 rounded-2xl border-2 border-dashed">
-                            <h3 class="font-bold text-lg mb-6 border-b pb-2 text-black font-black" x-text="t('enterMeasurements')"></h3>
-                            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 font-bold">
+                            <h3 class="font-bold text-lg mb-6 border-b pb-2 text-black" x-text="t('enterMeasurements')"></h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                                 <template x-for="field in garmentFields[order.garmentType]" :key="field">
                                     <div class="space-y-1">
-                                        <label class="text-[10px] font-black text-gray-400 uppercase tracking-tighter" x-text="t(field) || field"></label>
-                                        <input type="number" x-model="order.measurements[field]" class="w-full border-2 p-2 rounded-lg outline-none focus:border-black font-mono shadow-inner text-black font-black">
+                                        <label class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter" x-text="t(field) || field"></label>
+                                        <input type="number" x-model="order.measurements[field]" class="w-full border-2 p-2 rounded-lg outline-none focus:border-black font-mono shadow-inner text-black font-bold">
                                     </div>
                                 </template>
                             </div>
@@ -125,10 +126,10 @@
                     </template>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t">
-                        <input type="text" :placeholder="t('fullName')" x-model="order.customerName" class="w-full border-2 p-3 rounded-xl outline-none font-bold text-black">
-                        <input type="tel" :placeholder="t('phone')" x-model="order.phone" class="w-full border-2 p-3 rounded-xl outline-none font-bold text-black">
-                        <input type="text" :placeholder="t('city')" x-model="order.city" class="w-full border-2 p-3 rounded-xl outline-none font-bold text-black">
-                        <textarea :placeholder="t('address')" x-model="order.fullAddress" class="w-full border-2 p-3 rounded-xl outline-none h-20 font-bold text-black"></textarea>
+                        <input type="text" :placeholder="t('fullName')" x-model="order.customerName" class="w-full border-2 p-3 rounded-xl outline-none font-bold text-black shadow-sm">
+                        <input type="tel" :placeholder="t('phone')" x-model="order.phone" class="w-full border-2 p-3 rounded-xl outline-none font-bold text-black shadow-sm">
+                        <input type="text" :placeholder="t('city')" x-model="order.city" class="w-full border-2 p-3 rounded-xl outline-none font-bold text-black shadow-sm">
+                        <textarea :placeholder="t('address')" x-model="order.fullAddress" class="w-full border-2 p-3 rounded-xl outline-none h-20 font-bold text-black shadow-sm"></textarea>
                     </div>
 
                     <button @click="submitOrder()" :style="{ backgroundColor: settings.primaryColor }" class="w-full text-white py-5 rounded-2xl text-2xl font-bold shadow-lg hover:opacity-90 transition transform" x-text="t('confirmBtn')"></button>
@@ -153,7 +154,7 @@
                     </div>
                 </div>
 
-                <!-- صندوق الأمان من الصورة -->
+                <!-- صندوق الأمان الوردي -->
                 <div class="instruction-box">
                     <h4 class="text-red-700 font-black flex items-center gap-2 mb-3 text-lg">
                         <span>⚠️</span> <span x-text="t('payTitle')"></span>
@@ -165,8 +166,8 @@
                     </ul>
                 </div>
 
-                <div :style="{ borderColor: settings.accentColor }" class="border-2 p-6 rounded-xl bg-gray-50 space-y-4 mb-8 shadow-inner font-bold text-black">
-                    <p class="text-center font-bold border-b pb-2 uppercase gold-color italic tracking-widest font-black text-black" x-text="t('bankInfo')"></p>
+                <div :style="{ borderColor: settings.accentColor }" class="border-2 p-6 rounded-xl bg-gray-50 space-y-4 mb-8 shadow-inner">
+                    <p class="text-center font-bold border-b pb-2 uppercase gold-color italic tracking-widest" x-text="t('bankInfo')"></p>
                     <div class="space-y-2 text-sm font-bold">
                         <p x-text="t('bankName') + ': ' + settings.bankName"></p>
                         <p class="underline" x-text="t('rib') + ':'"></p>
@@ -192,11 +193,11 @@
             </div>
         </template>
 
-        <!-- لوحة التحكم -->
+        <!-- لوحة التحكم (مخفية - تفتح عبر الشعار) -->
         <template x-if="view === 'admin'">
-            <div class="space-y-6 no-print animate-fadeIn text-black font-bold">
+            <div class="space-y-6 no-print animate-fadeIn text-black">
                 <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow border border-gold">
-                    <h2 class="text-2xl font-black italic gold-color underline" x-text="t('adminPanel')"></h2>
+                    <h2 class="text-2xl font-black italic gold-color underline">لوحة تحكم MOUNIR MODE</h2>
                     <div class="flex gap-2 flex-wrap text-[10px]">
                         <button @click="adminTab = 'orders'" :class="adminTab === 'orders' ? 'bg-black text-white' : 'bg-gray-200'" class="px-4 py-1 rounded-full font-bold transition">الطلبات</button>
                         <button @click="adminTab = 'garments'" :class="adminTab === 'garments' ? 'bg-black text-white' : 'bg-gray-200'" class="px-4 py-1 rounded-full font-bold transition">القياسات</button>
@@ -206,36 +207,25 @@
                 </div>
 
                 <!-- تبويب الإعدادات -->
-                <div x-show="adminTab === 'settings'" class="bg-white p-6 rounded-2xl shadow-xl border-t-8 border-gold space-y-6 text-black">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div x-show="adminTab === 'settings'" class="bg-white p-6 rounded-2xl shadow-xl border-t-8 border-gold space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 font-bold">
                         <div class="space-y-4">
                             <h3 class="font-bold border-b pb-1 text-gold-700 italic">البنك والحماية</h3>
-                            <div class="bg-blue-50 p-2 rounded border border-blue-200 shadow-sm">
-                                <label class="text-xs font-bold block mb-1">اللغة / Langue:</label>
-                                <select x-model="settings.lang" @change="saveToCloud()" class="w-full border p-1 rounded font-bold text-black outline-none shadow-sm">
-                                    <option value="ar">العربية</option>
-                                    <option value="fr">Français</option>
-                                </select>
-                            </div>
                             <div><label class="text-xs font-bold">اسم البنك:</label><input type="text" x-model="settings.bankName" class="w-full border p-2 rounded shadow-sm text-black"></div>
                             <div><label class="text-xs font-bold">RIB:</label><input type="text" x-model="settings.rib" class="w-full border p-2 rounded font-mono text-sm shadow-sm text-black"></div>
                             <div><label class="text-xs font-bold text-red-600 underline">كلمة مرور المسؤول:</label><input type="password" x-model="settings.adminPassword" class="w-full border p-2 rounded shadow-sm text-black"></div>
                         </div>
-
-                        <div class="space-y-4">
+                        <div class="space-y-4 font-bold">
                             <h3 class="font-bold border-b pb-1 text-blue-700 italic">الهوية والكلمات</h3>
-                            <div class="bg-yellow-50 p-3 rounded border border-yellow-200 shadow-inner">
-                                <label class="text-xs font-bold block mb-1 text-red-600 underline italic tracking-tight font-black">عنوان البطاقة (بدلاً من MODE):</label>
-                                <input type="text" x-model="settings.heroText" class="w-full border-2 border-gold p-2 rounded text-black font-black">
-                            </div>
-                            <div class="bg-gray-50 p-2 rounded border border-gray-300 shadow-inner">
-                                <label class="text-xs font-bold block mb-2">رفع الشعار (Logo):</label>
+                            <div><label class="text-xs font-bold block mb-1 text-red-600 italic">عنوان البطاقة (MODE):</label><input type="text" x-model="settings.heroText" class="w-full border-2 border-gold p-2 rounded text-black font-black"></div>
+                            <div class="bg-gray-50 p-2 rounded border border-gray-300">
+                                <label class="text-xs font-bold block mb-2 underline italic">رفع الشعار الخاص بك:</label>
                                 <div class="flex items-center gap-4">
                                     <template x-if="settings.logo"><img :src="settings.logo" class="logo-img"></template>
-                                    <input type="file" @change="uploadLogo" class="text-[10px] w-full text-black font-bold">
+                                    <input type="file" @change="uploadLogo" class="text-[10px] w-full text-black">
                                 </div>
                             </div>
-                            <div><label class="text-xs font-bold text-green-700 font-black underline">رقم الواتساب (212...):</label><input type="text" x-model="settings.myWhatsApp" class="w-full border-2 border-green-200 p-2 rounded text-black font-bold"></div>
+                            <div><label class="text-xs font-bold text-green-700 font-black underline italic">رقم واتسابك (بـ 212):</label><input type="text" x-model="settings.myWhatsApp" class="w-full border-2 border-green-200 p-2 rounded text-black font-bold"></div>
                             <div><label class="text-xs font-bold">اسم المتجر العلوي:</label><input type="text" x-model="settings.appTitle" class="w-full border p-2 rounded text-black font-bold"></div>
                             <div class="flex gap-2">
                                 <div class="flex-1 text-black font-bold"><label class="text-[10px]">اللون الرئيسي:</label><input type="color" x-model="settings.primaryColor" class="w-full h-8 border cursor-pointer"></div>
@@ -243,22 +233,22 @@
                             </div>
                         </div>
                     </div>
-                    <button @click="saveToCloud(); alert('تم الحفظ بنجاح!')" class="bg-black text-white px-10 py-3 rounded-full font-bold shadow-lg hover:bg-gold transition uppercase tracking-widest font-black">حفظ التغييرات للجميع</button>
+                    <button @click="saveToCloud(); alert('تم الحفظ بنجاح!')" class="bg-black text-white px-10 py-3 rounded-full font-bold shadow-lg hover:bg-gold transition uppercase tracking-widest font-black w-full">حفظ التغييرات للجميع</button>
                 </div>
 
-    <!-- إدارة الملابس -->
-                <div x-show="adminTab === 'garments'" class="bg-white p-6 rounded-2xl shadow-xl border-t-8 border-black space-y-6 text-black">
-                    <h3 class="font-bold text-xl border-b pb-2 italic gold-color underline">⚙️ إدارة الأصناف والقياسات</h3>
+                <!-- تبويب إدارة الملابس والقياسات -->
+                <div x-show="adminTab === 'garments'" class="bg-white p-6 rounded-2xl shadow-xl border-t-8 border-black space-y-6">
+                    <h3 class="font-bold text-xl border-b pb-2 italic gold-color underline uppercase">⚙️ إدارة الأصناف والقياسات</h3>
                     <div class="space-y-4">
                         <template x-for="(fields, type) in garmentFields" :key="type">
                             <div class="border p-4 rounded-xl bg-gray-50 flex justify-between items-start shadow-sm">
-                                <div class="flex-1">
+                                <div class="flex-1 font-bold">
                                     <h4 class="font-bold text-blue-800 mb-2 border-r-4 border-blue-800 pr-2" x-text="type"></h4>
                                     <div class="flex flex-wrap gap-2">
                                         <template x-for="(field, index) in fields" :key="index">
                                             <span class="bg-white border px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 shadow-sm">
                                                 <span x-text="t(field) || field"></span>
-                                                <button @click="removeField(type, index)" class="text-red-500 font-bold ml-1">×</button>
+                                                <button @click="removeField(type, index)" class="text-red-500 font-bold ml-1 hover:scale-125 transition">×</button>
                                             </span>
                                         </template>
                                         <button @click="addField(type)" class="text-green-600 font-bold text-[10px] underline tracking-tighter decoration-dotted font-black">+ إضافة قياس</button>
@@ -271,42 +261,42 @@
                     </div>
                 </div>
 
-                <!-- الألبوم -->
-                <div x-show="adminTab === 'catalog'" class="grid grid-cols-1 md:grid-cols-2 gap-6 text-black font-bold">
+                <!-- الألبوم والأقمشة -->
+                <div x-show="adminTab === 'catalog'" class="grid grid-cols-1 md:grid-cols-2 gap-6 font-bold">
                     <div class="bg-white p-6 rounded-2xl shadow border-t-4 border-gold">
-                        <h3 class="font-bold mb-4 border-b pb-1">إدارة الألبوم (الموديلات)</h3>
+                        <h3 class="font-bold mb-4 border-b pb-1 italic">إدارة الألبوم (الموديلات)</h3>
                         <div class="space-y-2 mb-4 bg-gray-50 p-2 rounded border">
                             <input type="text" x-model="newMod.name" placeholder="اسم الموديل" class="w-full border p-1 text-xs">
                             <input type="number" x-model="newMod.price" placeholder="الثمن" class="w-full border p-1 text-xs text-black font-black">
-                            <input type="file" @change="uploadModelImg" class="text-[9px] w-full">
+                            <input type="file" @change="uploadModelImg" class="text-[9px] w-full font-bold">
                             <button @click="addMod()" class="w-full bg-gold text-black py-1 rounded font-bold text-xs shadow-sm">+ إضافة</button>
                         </div>
-                        <div class="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
+                        <div class="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto font-bold">
                             <template x-for="(m, i) in models" :key="m.id">
                                 <div class="border p-1 rounded relative bg-white shadow-sm"><img :src="m.img" class="w-full h-12 object-cover rounded shadow-inner"><p class="text-[10px] font-bold" x-text="m.name"></p><button @click="deleteModel(m.id)" class="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-xs font-black shadow-lg">×</button></div>
                             </template>
                         </div>
                     </div>
                     <div class="bg-white p-6 rounded-2xl shadow border-t-4 border-black">
-                        <h3 class="font-bold mb-4 border-b pb-1">إدارة الأقمشة</h3>
-                        <div class="flex gap-2 mb-4"><input type="text" x-model="newFab" placeholder="قماش جديد" class="flex-1 border p-1 text-xs font-bold text-black"><button @click="addFab()" class="bg-black text-white px-3 rounded font-bold text-xs shadow-sm">إضافة</button></div>
+                        <h3 class="font-bold mb-4 border-b pb-1 italic">إدارة الأقمشة</h3>
+                        <div class="flex gap-2 mb-4"><input type="text" x-model="newFab" placeholder="قماش جديد" class="flex-1 border p-1 text-xs font-bold text-black shadow-sm"><button @click="addFab()" class="bg-black text-white px-3 rounded font-bold text-xs shadow-sm">إضافة</button></div>
                         <div class="flex flex-wrap gap-2 max-h-60 overflow-y-auto">
                             <template x-for="(f, i) in fabrics" :key="f.id">
-                                <div class="bg-gray-100 px-3 py-1 rounded-full border text-[10px] font-bold flex items-center gap-2 shadow-sm text-black font-black"><span x-text="f.name"></span><button @click="deleteFabric(f.id)" class="text-red-500 font-bold">×</button></div>
+                                <div class="bg-gray-100 px-3 py-1 rounded-full border text-[10px] font-bold flex items-center gap-2 shadow-sm text-black font-black"><span x-text="f.name"></span><button @click="deleteFabric(f.id)" class="text-red-500 font-bold hover:scale-125 transition">×</button></div>
                             </template>
                         </div>
                     </div>
                 </div>
 
                 <!-- الطلبات -->
-                <div x-show="adminTab === 'orders'" class="bg-white rounded-2xl shadow-xl overflow-hidden border text-black font-bold">
+                <div x-show="adminTab === 'orders'" class="bg-white rounded-2xl shadow-xl overflow-hidden border text-black">
                     <table class="w-full text-right text-xs md:text-sm">
                         <thead class="bg-black text-white font-black uppercase tracking-widest italic">
                             <tr><th class="p-4">الزبون</th><th class="p-4">اللباس</th><th class="p-4">المبلغ</th><th class="p-4 text-gold-500 italic">الرقم المرجعي</th><th class="p-4">تحكم</th></tr>
                         </thead>
                         <tbody>
                             <template x-for="o in allOrders" :key="o.id">
-                                <tr class="border-b hover:bg-yellow-50 transition border-gray-100 font-bold">
+                                <tr class="border-b hover:bg-yellow-50 transition border-gray-100 font-bold text-black">
                                     <td class="p-4 font-bold" x-text="o.customerName"></td>
                                     <td class="p-4 font-bold" x-text="o.garmentType"></td>
                                     <td class="p-4 font-black text-gold-600" x-text="o.price + ' MAD'"></td>
@@ -341,8 +331,8 @@
                 ar: {
                     newOrder: "طلب جديد", adminPanel: "لوحة التحكم 🔒", customerType: "نوع الزبون", woman: "امرأة", man: "رجل", girl: "بنت", boy: "ولد",
                     garmentType: "نوع اللباس", select: "اختر...", selectGarment: "ماذا تريد أن تفصل؟", selectModel: "اختر الموديل المطلوب", 
-                    selectFabric: "اختر نوع القماش", enterMeasurements: "أدخل القياسات المطلوبة (cm)", fullName: "الاسم الكامل للزبون",
-                    phone: "رقم الهاتف (واتساب)", city: "المدينة", address: "العنوان الكامل للشحن", confirmBtn: "تأكيد الطلب واستخراج الفاتورة",
+                    selectFabric: "اختر نوع القماش", enterMeasurements: "أدخل القياسات المطلوبة (cm)", fullName: "الاسم الكامل",
+                    phone: "رقم الهاتف", city: "المدينة", address: "العنوان الكامل للشحن", confirmBtn: "تأكيد الطلب واستخراج الفاتورة",
                     orderNo: "رقم الطلب", bankInfo: "بيانات التحويل البنكي", bankName: "البنك", rib: "رقم الحساب (RIB)", total: "المبلغ المطلوب",
                     currency: "درهم", enterRef: "أدخل رقم العملية المكتوب في الوصل:", refPlaceholder: "أدخل الرقم هنا...",
                     whatsappBtn: "إرسال وصل التحويل عبر WhatsApp", print: "طباعة", back: "رجوع", tabOrders: "الطلبات", 
@@ -355,12 +345,12 @@
                 },
                 fr: {
                     newOrder: "Nouveau", adminPanel: "Admin 🔒", customerType: "Genre", woman: "Femme", man: "Homme", girl: "Fille", boy: "Garçon",
-                    garmentType: "Vêtement", select: "Choisir...", selectGarment: "Type de vêtement ?", selectModel: "Modèle",
-                    selectFabric: "Tissu", enterMeasurements: "Mesures (cm)", fullName: "Nom Complet",
+                    garmentType: "Vêtement", select: "Choisir...", selectGarment: "Vêtement ?", selectModel: "Modèle",
+                    selectFabric: "Tissu", enterMeasurements: "Mesures (cm)", fullName: "Nom",
                     phone: "WhatsApp", city: "Ville", address: "Livraison", confirmBtn: "Confirmer",
-                    orderNo: "N° Commande", bankInfo: "Virement Bancaire", bankName: "Banque", rib: "RIB", total: "Total",
+                    orderNo: "N° Commande", bankInfo: "Banque", bankName: "Banque", rib: "RIB", total: "Total",
                     currency: "MAD", enterRef: "N° transaction :", refPlaceholder: "Référence...",
-                    whatsappBtn: "Envoyer reçu via WhatsApp", print: "Imprimer", back: "Retour",
+                    whatsappBtn: "WhatsApp", print: "Imprimer", back: "Retour",
                     épaule: "Épaule", poitrine: "Poitrine", "tour de taille": "Tour de taille", hanche: "Hanche", bassin: "Bassin", "longueur poitrine": "L. Poitrine", "longueur totale": "L. Totale", "longueur manche": "L. Manche", "tour de bras": "Tour de bras", poignée: "Poignée", ceinture: "Ceinture", cuisse: "Cuisse", Molet: "Mollet", palma: "Palma", taille: "Taille"
                 }
             };
@@ -381,10 +371,9 @@
                     "Gilet": ["épaule", "poitrine", "taille", "longueur totale"]
                 },
                 fabrics: [], models: [], allOrders: [],
-                order: { id: '', garmentType: '', model: '', fabric: '', price: 0, measurements: {}, customerName: '', phone: '', city: '', fullAddress: '', date: '', refNumber: '' },
+                order: { id: '', garmentType: '', model: '', modelImg: '', fabric: '', price: 0, measurements: {}, customerName: '', phone: '', city: '', fullAddress: '', date: '', refNumber: '' },
 
                 async init() {
-                    // تأمين اختفاء الدائرة بعد 5 ثواني مهما حدث
                     setTimeout(() => { if(this.loading) this.loading = false; }, 5000);
                     try {
                         const snap = await database.ref('/').once('value');
@@ -396,7 +385,7 @@
                             if (data.models) this.models = Object.values(data.models);
                             if (data.orders) this.allOrders = Object.values(data.orders).reverse();
                         }
-                    } catch (e) { console.error("Firebase Error:", e); }
+                    } catch (e) { console.error(e); }
                     this.loading = false;
                 },
 
@@ -446,7 +435,7 @@
                 async deleteFabric(id) { await database.ref('fabrics/' + id).remove(); this.init(); },
 
                 loginAdmin() {
-                    let p = prompt(this.settings.lang==='ar'?"القن السري:":"Code:");
+                    let p = prompt(this.settings.lang==='ar'?"القن السري للمسؤول:":"Code:");
                     if(p === this.settings.adminPassword) this.view = 'admin';
                 },
 
@@ -468,7 +457,7 @@
 
                 confirmWithWhatsApp() {
                     if(!this.order.refNumber) return alert(this.t('enterRef'));
-                    let msg = `*COMMANDE MOUNIR MODE*%0AID: #MO-${this.order.id}%0AType: ${this.order.garmentType}%0AREF: ${this.order.refNumber}`;
+                    let msg = `*COMMANDE MOUNIR MODE*%0AID: #MO-${this.order.id}%0AType: ${this.order.garmentType}%0AMontant: ${this.order.price} MAD%0AREF: ${this.order.refNumber}`;
                     window.open(`https://wa.me/${this.settings.myWhatsApp}?text=${msg}`);
                 },
 
